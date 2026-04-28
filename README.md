@@ -57,7 +57,7 @@ The full design notes and phased project breakdown are in [ControlShift-plan.md]
 
 - [x] Phase 0 - Rust Foundations
 - [x] Phase 1 - Input Pipeline Prototype
-- [ ] Phase 2 - ViGEmBus Scaffold
+- [x] Phase 2 - Router/backend integration and manual hardware checklist
 - [ ] Phase 3 - Custom UMDF Driver
 - [ ] Phase 4 - HidHide Integration
 - [ ] Phase 5 - Tauri UI
@@ -65,7 +65,7 @@ The full design notes and phased project breakdown are in [ControlShift-plan.md]
 
 ## Current stage
 
-The project is currently in **Phase 1: input pipeline prototype**.
+The project is currently ready to start **Phase 3: custom UMDF driver work**.
 
 Implemented today:
 
@@ -76,12 +76,16 @@ Implemented today:
 - Dedicated poller thread shape with exclusion filtering and connect/disconnect events
 - Fixed `to_xinput_report` and `to_dinput_report` translation functions
 - Console prototype that prints translated reports from a fake input provider
+- Pipeline layer that connects controller events to router decisions and backend commands
+- Fake backend integration tests for plug-in, report, unplug, duplicate connect handling, runtime output type changes, XInput routing, DirectInput routing, 4 XInput slots plus extra DirectInput controllers, and excluded controllers
+- Manual real-controller acceptance checklist in [docs/manual-tests/phase-2-real-controller.md](./docs/manual-tests/phase-2-real-controller.md)
 - Unit tests covering protocol, translation, routing, and poller behavior
 
 Not implemented yet:
 
 - Real Steamworks / Steam Input binding
 - Virtual controller driver/backend
+- Real hardware manual test execution
 - HidHide integration
 - UI and installer
 
@@ -93,7 +97,7 @@ Not implemented yet:
 
 `crates/bridge-core`
 
-- Router/config behavior, input polling prototype, translator logic, and the virtual-device backend trait used to keep later phases testable
+- Router/config behavior, input polling prototype, translator logic, pipeline integration, and the virtual-device backend trait used to keep later phases testable
 
 ## Development approach
 
@@ -108,10 +112,10 @@ That approach reduces risk in the most complex parts of the system, especially t
 
 ## Status summary
 
-- Repository maturity: early prototype with Phase 1 pipeline in place
+- Repository maturity: early prototype with Phase 2 pipeline integration complete
 - Platform target: Windows 10/11
 - Main technical direction: Steam Input -> virtual XInput or DirectInput/HID
-- Testing status: automated tests are in place for protocol, router, translator, and poller logic
+- Testing status: automated tests cover protocol, router, translator, poller, and fake backend pipeline logic; real-controller checks are documented as manual tests only
 
 ## License
 

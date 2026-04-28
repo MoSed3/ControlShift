@@ -14,8 +14,8 @@ fn main() {
     let (tx, rx) = channel();
     let handle = poller.spawn(tx);
 
-    let mut state_events = 0usize;
-    for event in rx {
+    let mut disconnect_events = 0usize;
+    while let Ok(event) = rx.recv() {
         match event {
             ControllerEvent::Connected { id, label } => {
                 println!("[connect] id={:?} label={label}", id);
@@ -27,17 +27,18 @@ fn main() {
                     "[state] id={:?} label={} xinput={xinput:?} dinput={dinput:?}",
                     snapshot.id, snapshot.label
                 );
-                state_events += 1;
-                if state_events >= 6 {
-                    break;
-                }
             }
             ControllerEvent::Disconnected { id } => {
                 println!("[disconnect] id={id:?}");
+                disconnect_events += 1;
+                if disconnect_events >= 2 {
+                    break;
+                }
             }
         }
     }
 
+    drop(rx);
     let _ = handle.join();
 }
 
