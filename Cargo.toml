@@ -2,6 +2,7 @@
 members = [
     "crates/bridge-core",
     "crates/bridge-protocol",
+    "crates/vhid-driver",
 ]
 resolver = "3"
 

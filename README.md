@@ -58,14 +58,14 @@ The full design notes and phased project breakdown are in [ControlShift-plan.md]
 - [x] Phase 0 - Rust Foundations
 - [x] Phase 1 - Input Pipeline Prototype
 - [x] Phase 2 - Router/backend integration and manual hardware checklist
-- [ ] Phase 3 - Custom UMDF Driver
+- [ ] Phase 3 - Custom UMDF Driver (3a scaffold started)
 - [ ] Phase 4 - HidHide Integration
 - [ ] Phase 5 - Tauri UI
 - [ ] Phase 6 - Installer and Distribution
 
 ## Current stage
 
-The project is currently ready to start **Phase 3: custom UMDF driver work**.
+The project is currently in **Phase 3a: custom UMDF driver scaffold and WDK setup**.
 
 Implemented today:
 
@@ -79,12 +79,17 @@ Implemented today:
 - Pipeline layer that connects controller events to router decisions and backend commands
 - Fake backend integration tests for plug-in, report, unplug, duplicate connect handling, runtime output type changes, XInput routing, DirectInput routing, 4 XInput slots plus extra DirectInput controllers, and excluded controllers
 - Manual real-controller acceptance checklist in [docs/manual-tests/phase-2-real-controller.md](./docs/manual-tests/phase-2-real-controller.md)
+- `vhid-driver` scaffold for driver-facing constants, VID/PID decisions, IPC pipe naming, and Phase 3 state
+- Driver development notes in [docs/driver_dev.md](./docs/driver_dev.md)
+- Manual Phase 3a driver-load checklist in [docs/manual-tests/phase-3a-driver-load.md](./docs/manual-tests/phase-3a-driver-load.md)
 - Unit tests covering protocol, translation, routing, and poller behavior
 
 Not implemented yet:
 
 - Real Steamworks / Steam Input binding
-- Virtual controller driver/backend
+- Real UMDF driver entry point and driver package files
+- Virtual child device creation
+- Named pipe IPC backend
 - Real hardware manual test execution
 - HidHide integration
 - UI and installer
@@ -99,6 +104,10 @@ Not implemented yet:
 
 - Router/config behavior, input polling prototype, translator logic, pipeline integration, and the virtual-device backend trait used to keep later phases testable
 
+`crates/vhid-driver`
+
+- Phase 3 driver scaffold with virtual HID device constants and driver milestone tracking
+
 ## Development approach
 
 This project is being built phase by phase so each layer can be tested and debugged before adding the next one. The current strategy is:
@@ -112,10 +121,10 @@ That approach reduces risk in the most complex parts of the system, especially t
 
 ## Status summary
 
-- Repository maturity: early prototype with Phase 2 pipeline integration complete
+- Repository maturity: early prototype with Phase 3 driver scaffold started
 - Platform target: Windows 10/11
 - Main technical direction: Steam Input -> virtual XInput or DirectInput/HID
-- Testing status: automated tests cover protocol, router, translator, poller, and fake backend pipeline logic; real-controller checks are documented as manual tests only
+- Testing status: automated tests cover protocol, router, translator, poller, fake backend pipeline logic, and driver scaffold constants; real-controller and driver-load checks are documented as manual tests only
 
 ## License
 
