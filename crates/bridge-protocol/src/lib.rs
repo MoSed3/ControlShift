@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub const XINPUT_REPORT_LEN: usize = 12;
 pub const DINPUT_REPORT_LEN: usize = 28;
+pub const DINPUT_HAT_CENTERED: u8 = 8;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ControllerId(pub u64);
@@ -88,29 +89,48 @@ impl ControllerState {
     }
 
     pub fn xinput_button_bits(&self) -> u16 {
-        const XINPUT_SUPPORTED: [Button; 15] = [
-            Button::A,
-            Button::B,
-            Button::X,
-            Button::Y,
-            Button::LeftBumper,
-            Button::RightBumper,
-            Button::Back,
-            Button::Start,
-            Button::Guide,
-            Button::LeftStick,
-            Button::RightStick,
-            Button::DPadUp,
-            Button::DPadDown,
-            Button::DPadLeft,
-            Button::DPadRight,
-        ];
-
         let mut bits = 0_u16;
-        for button in XINPUT_SUPPORTED {
-            if self.is_pressed(button) {
-                bits |= 1 << (button as u16);
-            }
+        if self.is_pressed(Button::DPadUp) {
+            bits |= 0x0001;
+        }
+        if self.is_pressed(Button::DPadDown) {
+            bits |= 0x0002;
+        }
+        if self.is_pressed(Button::DPadLeft) {
+            bits |= 0x0004;
+        }
+        if self.is_pressed(Button::DPadRight) {
+            bits |= 0x0008;
+        }
+        if self.is_pressed(Button::Start) {
+            bits |= 0x0010;
+        }
+        if self.is_pressed(Button::Back) {
+            bits |= 0x0020;
+        }
+        if self.is_pressed(Button::LeftStick) {
+            bits |= 0x0040;
+        }
+        if self.is_pressed(Button::RightStick) {
+            bits |= 0x0080;
+        }
+        if self.is_pressed(Button::LeftBumper) {
+            bits |= 0x0100;
+        }
+        if self.is_pressed(Button::RightBumper) {
+            bits |= 0x0200;
+        }
+        if self.is_pressed(Button::A) {
+            bits |= 0x1000;
+        }
+        if self.is_pressed(Button::B) {
+            bits |= 0x2000;
+        }
+        if self.is_pressed(Button::X) {
+            bits |= 0x4000;
+        }
+        if self.is_pressed(Button::Y) {
+            bits |= 0x8000;
         }
         bits
     }
@@ -177,14 +197,41 @@ impl From<ControllerState> for XInputReport {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DInputReport {
-    pub bytes: [u8; DINPUT_REPORT_LEN],
+    pub buttons: u32,
+    pub hat: u8,
+    pub left_stick_x: i16,
+    pub left_stick_y: i16,
+    pub right_stick_x: i16,
+    pub right_stick_y: i16,
+    pub left_trigger: u8,
+    pub right_trigger: u8,
 }
 
 impl DInputReport {
     pub const fn zeroed() -> Self {
         Self {
-            bytes: [0; DINPUT_REPORT_LEN],
+            buttons: 0,
+            hat: DINPUT_HAT_CENTERED,
+            left_stick_x: 0,
+            left_stick_y: 0,
+            right_stick_x: 0,
+            right_stick_y: 0,
+            left_trigger: 0,
+            right_trigger: 0,
         }
+    }
+
+    pub fn to_le_bytes(self) -> [u8; DINPUT_REPORT_LEN] {
+        let mut bytes = [0; DINPUT_REPORT_LEN];
+        bytes[0..4].copy_from_slice(&self.buttons.to_le_bytes());
+        bytes[4] = self.hat;
+        bytes[8..10].copy_from_slice(&self.left_stick_x.to_le_bytes());
+        bytes[10..12].copy_from_slice(&self.left_stick_y.to_le_bytes());
+        bytes[12..14].copy_from_slice(&self.right_stick_x.to_le_bytes());
+        bytes[14..16].copy_from_slice(&self.right_stick_y.to_le_bytes());
+        bytes[16] = self.left_trigger;
+        bytes[17] = self.right_trigger;
+        bytes
     }
 }
 
@@ -272,9 +319,19 @@ mod tests {
 
         let report = XInputReport::from(state);
 
-        assert_eq!(report.buttons, Button::A.bit() as u16);
+        assert_eq!(report.buttons, 0x1000);
         assert_eq!(report.left_trigger, 64);
         assert_eq!(report.right_trigger, 128);
+    }
+
+    #[test]
+    fn xinput_translation_uses_real_xinput_button_masks() {
+        let mut state = ControllerState::default();
+        state.set_pressed(Button::A, true);
+        state.set_pressed(Button::Start, true);
+        state.set_pressed(Button::DPadLeft, true);
+
+        assert_eq!(state.xinput_button_bits(), 0x1014);
     }
 
     #[test]
@@ -300,7 +357,11 @@ mod tests {
 
     #[test]
     fn dinput_report_has_expected_wire_size() {
-        assert_eq!(DInputReport::default().bytes.len(), DINPUT_REPORT_LEN);
+        assert_eq!(
+            DInputReport::default().to_le_bytes().len(),
+            DINPUT_REPORT_LEN
+        );
+        assert_eq!(DInputReport::default().hat, DINPUT_HAT_CENTERED);
     }
 
     #[test]

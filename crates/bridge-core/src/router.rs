@@ -17,7 +17,7 @@ impl Default for ControllerConfig {
         Self {
             excluded: false,
             output_type: OutputType::DirectInput,
-            hide_original_from_nonsteam: true,
+            hide_original_from_nonsteam: false,
         }
     }
 }
